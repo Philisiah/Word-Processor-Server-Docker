@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -179,6 +180,8 @@ namespace EJ2DocumentEditorServer.Controllers
         {
             public string DocumentName { get; set; }
         }
+        
+        
         [AcceptVerbs("Post")]
         [HttpPost]
         [EnableCors("AllowAllOrigins")]
@@ -205,6 +208,7 @@ namespace EJ2DocumentEditorServer.Controllers
             document.Dispose();
             return json;
         }
+        
         [HttpPost]
         [EnableCors("AllowAllOrigins")]
         [Route("LoadDocument")]
@@ -380,6 +384,33 @@ namespace EJ2DocumentEditorServer.Controllers
             stream.Dispose();
             return document;
         }
+
+        [AcceptVerbs("Post")]
+        [HttpPost]
+        [EnableCors("AllowAllOrigins")]
+        [Route("ImportFileURL")]
+        public string ImportFileURL([FromBody]FileUrlInfo param)
+        {
+            try {
+                using(WebClient client = new WebClient())
+                    {
+                        MemoryStream stream = new MemoryStream(client.DownloadData(param.fileUrl));
+                        WordDocument document = WordDocument.Load(stream, FormatType.Docx);
+                        string json = Newtonsoft.Json.JsonConvert.SerializeObject(document);
+                        document.Dispose();
+                        stream.Dispose();
+                        return json;
+                    }
+                }
+                catch (Exception) {
+                    return "";
+                }
+        }
+            public class FileUrlInfo {
+                public string fileUrl { get; set; }
+                public string Content { get; set; }
+            }
+        
     }
 
 }
